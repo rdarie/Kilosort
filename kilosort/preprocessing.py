@@ -130,7 +130,7 @@ def get_highpass_filter(fs = 30000, device=torch.device('cuda')):
     x[NT//2] = 1
 
     # symmetric filter from scipy
-    hp_filter = filtfilt(b, a , x).copy()
+    hp_filter = filtfilt(b, a, x).copy()
     
     hp_filter = torch.from_numpy(hp_filter).to(device).float()
     return hp_filter

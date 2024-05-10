@@ -291,8 +291,14 @@ def save_ops(ops, results_dir=None):
         if isinstance(v, torch.Tensor):
             ops[k] = v.cpu().numpy()
             ops['is_tensor'].append(k)
-    ops['preprocessing'] = {k: v.cpu().numpy()
-                            for k, v in ops['preprocessing'].items()}
+    # modified RD 20240416
+    ops['preprocessing'] = {}
+    for k, v in ops['preprocessing'].items():
+        if v is not None:
+            ops['preprocessing'][k] = v.cpu().numpy()
+    '''ops['preprocessing'] = {
+        k: v.cpu().numpy()
+        for k, v in ops['preprocessing'].items()}'''
 
     np.save(results_dir / 'ops.npy', np.array(ops))
 

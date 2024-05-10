@@ -46,8 +46,9 @@ class KiloSortWorker(QtCore.QThread):
             tic0 = time.time()
 
             # TODO: make these options in GUI
-            do_CAR=True
-            invert_sign=False
+            # modified RD 20240416
+            do_CAR = False
+            invert_sign = False
         
             if not do_CAR:
                 print("Skipping common average reference.")
