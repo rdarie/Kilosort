@@ -123,6 +123,12 @@ def run_kilosort(settings, probe=None, probe_name=None, filename=None,
         set_files(settings, filename, probe, probe_name, data_dir, results_dir)
     ops = initialize_ops(settings, probe, data_dtype, do_CAR, invert_sign, device)
 
+    if probe['chanMap'].max() >= settings['n_chan_bin']:
+        raise ValueError(
+            f'Largest value of chanMap exceeds channel count of data, '
+             'make sure chanMap is 0-indexed.'
+        )
+
     # Set preprocessing and drift correction parameters
     ops = compute_preprocessing(ops, device, tic0=tic0, file_object=file_object)
     np.random.seed(1)
@@ -142,11 +148,12 @@ def run_kilosort(settings, probe=None, probe_name=None, filename=None,
                                  progress_bar=progress_bar)
     clu, Wall = cluster_spikes(st, tF, ops, device, bfile, tic0=tic0,
                                progress_bar=progress_bar)
-    ops, similar_templates, is_ref, est_contam_rate = \
+    ops, similar_templates, is_ref, est_contam_rate, kept_spikes = \
         save_sorting(ops, results_dir, st, clu, tF, Wall, bfile.imin, tic0,
                      save_extra_vars=save_extra_vars)
 
-    return ops, st, clu, tF, Wall, similar_templates, is_ref, est_contam_rate
+    return ops, st, clu, tF, Wall, similar_templates, \
+           is_ref, est_contam_rate, kept_spikes
 
 
 def set_files(settings, filename, probe, probe_name, data_dir, results_dir):
@@ -192,6 +199,11 @@ def set_files(settings, filename, probe, probe_name, data_dir, results_dir):
         
         probe  = io.load_probe(probe_path)
         print(f"using probe {probe_path.name}")
+    else:
+        # Make sure xc, yc are float32, otherwise there are casting problems
+        # with some pytorch functions.
+        probe['xc'] = probe['xc'].astype(np.float32)
+        probe['yc'] = probe['yc'].astype(np.float32)
 
     return filename, data_dir, results_dir, probe
 
@@ -414,6 +426,14 @@ def detect_spikes(ops, device, bfile, tic0=np.nan, progress_bar=None):
     print(f'{len(st)} spikes extracted in {time.time()-tic : .2f}s; ' +
             f'total {time.time()-tic0 : .2f}s')
 
+    negative_spikes = (st[:,0] < 0).sum()
+    if negative_spikes > 0:
+        print(
+            f'{negative_spikes} spikes with negative spike times were detected.\n'
+            'We are aware of an issue causing this to happen for a small number '
+            'of spikes, and are working on a fix.'
+            )
+
     return st, tF, Wall, clu
 
 
@@ -473,7 +493,8 @@ def save_sorting(ops, results_dir, st, clu, tF, Wall, imin, tic0=np.nan,
     """
 
     print('\nSaving to phy and computing refractory periods')
-    results_dir, similar_templates, is_ref, est_contam_rate = io.save_to_phy(
+    results_dir, similar_templates, is_ref, est_contam_rate, kept_spikes = \
+        io.save_to_phy(
             st, clu, tF, Wall, ops['probe'], ops, imin, results_dir=results_dir,
             data_dtype=ops['data_dtype'], save_extra_vars=save_extra_vars
             )
@@ -490,7 +511,7 @@ def save_sorting(ops, results_dir, st, clu, tF, Wall, imin, tic0=np.nan,
 
     io.save_ops(ops, results_dir)
 
-    return ops, similar_templates, is_ref, est_contam_rate
+    return ops, similar_templates, is_ref, est_contam_rate, kept_spikes
 
 
 def load_sorting(results_dir, device=None, load_extra_vars=False):

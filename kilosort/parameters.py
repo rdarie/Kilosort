@@ -321,15 +321,6 @@ EXTRA_PARAMETERS = {
             """
     },
 
-    'cluster_pcs': {
-        'gui_name': 'cluster pcs', 'type': int, 'min': 1, 'max': np.inf,
-        'exclude': [], 'default': 64, 'step': 'clustering',
-        'description':
-            """
-            Maximum number of spatiotemporal PC features used for clustering.
-            """
-    },
-
     'x_centers': {
         'gui_name': 'x centers', 'type': int, 'min': 1,
         'max': np.inf, 'exclude': [], 'default': None, 'step': 'clustering',
@@ -347,7 +338,7 @@ EXTRA_PARAMETERS = {
     ### POSTPROCESSING
     'duplicate_spike_bins': {
         'gui_name': 'duplicate spike bins', 'type': int, 'min': 0, 'max': np.inf,
-        'exclude': [], 'default': 15, 'step': 'postprocessing',
+        'exclude': [], 'default': 7, 'step': 'postprocessing',
         'description':
             """
             Number of bins for which subsequent spikes from the same cluster are

@@ -240,27 +240,33 @@ def x_centers(ops):
     else:
         # NOTE: This automated method does not work well for 2D array probes.
         #       We recommend specifying `x_centers` manually for that case.
-        dminx = ops['dminx']
+
+        # Originally bin_width was set equal to `dminx`, but decided it's better
+        # to not couple this behavior with that setting. A bin size of 50 microns
+        # seems to work well for NP1 and 2, tetrodes, and 2D arrays. We can make
+        # this a parameter later on if it becomes a problem.
+        bin_width = 50
         min_x = ops['xc'].min()
         max_x = ops['xc'].max()
 
         # Make histogram of x-positions with bin size roughly equal to dminx,
         # with a bit of padding on either end of the probe so that peaks can be
         # detected at edges.
-        num_bins = int((max_x-min_x)/(dminx)) + 4
-        bins = np.linspace(min_x - dminx*2, max_x + dminx*2, num_bins)
+        num_bins = int((max_x-min_x)/(bin_width)) + 4
+        bins = np.linspace(min_x - bin_width*2, max_x + bin_width*2, num_bins)
         hist, edges = np.histogram(ops['xc'], bins=bins)
         # Apply smoothing to make peak-finding simpler.
         smoothed = gaussian_filter(hist, sigma=0.5)
         peaks, _ = find_peaks(smoothed)
         # peaks are indices, translate back to position in microns
         approx_centers = [edges[p] for p in peaks]
+
         # Use these as initial guesses for centroids in k-means to get
         # a more accurate value for the actual centers. Or, if there's only 1,
         # just look for one centroid.
         if len(approx_centers) == 1: approx_centers = 1
 
-    centers, distortion = kmeans(ops['xc'], approx_centers)
+    centers, distortion = kmeans(ops['xc'], approx_centers, seed=5330)
 
     # TODO: Maybe use distortion to raise warning if it seems too large?
     # "The mean (non-squared) Euclidean distance between the observations passed
@@ -299,7 +305,6 @@ def run(ops, st, tF,  mode = 'template', device=torch.device('cuda'), progress_b
     dmin = ops['dmin']
     dminx = ops['dminx']
     nskip = ops['settings']['cluster_downsampling']
-    ncomps = ops['settings']['cluster_pcs']
     ycent = y_centers(ops)
     xcent = x_centers(ops)
     nsp = st.shape[0]
@@ -331,7 +336,7 @@ def run(ops, st, tF,  mode = 'template', device=torch.device('cuda'), progress_b
             ix = (minimum_distance == ii)
             Xd, ch_min, ch_max, igood  = get_data_cpu(
                 ops, xy, iC, iclust_template, tF, ycent[kk], xcent[jj], dmin=dmin,
-                dminx=dminx, ncomps=ncomps, ix=ix
+                dminx=dminx, ix=ix
                 )
 
             if Xd is None:
@@ -387,7 +392,7 @@ def run(ops, st, tF,  mode = 'template', device=torch.device('cuda'), progress_b
 
 
 def get_data_cpu(ops, xy, iC, PID, tF, ycenter, xcenter, dmin=20, dminx=32,
-                 ncomps=64, ix=None, merge_dim=True):
+                 ix=None, merge_dim=True):
     PID =  torch.from_numpy(PID).long()
 
     #iU = ops['iU'].cpu().numpy()

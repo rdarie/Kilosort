@@ -56,7 +56,7 @@ def plot_drift_scatter(plot_window, st0, settings):
     p1.setTitle('Spike amplitude across time and depth', color='black')
 
     x = st0[:,0]  # spike time in seconds
-    y = st0[:,5]  # depth of spike center in microns
+    y = st0[:,1]  # depth of spike center in microns
     z = st0[:,2]  # spike amplitude (data)
     z[z < 10] = 10
     z[z > 100] = 100
@@ -108,7 +108,7 @@ def plot_diagnostics(plot_window, wPCA, Wall0, clu0, settings):
 
     # Spatial features (top right)
     p2 = plot_window.plot_widget.addPlot(
-        row=0, col=1, labels={'bottom': 'Unit Number', 'left': 'Channel Number'}
+        row=0, col=1, labels={'bottom': 'Channel Number', 'left': 'Unit Number'}
         )
     p2.setTitle('Spatial Features')
     features = torch.linalg.norm(Wall0, dim=2).cpu().numpy()

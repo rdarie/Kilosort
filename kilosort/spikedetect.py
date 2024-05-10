@@ -92,7 +92,7 @@ def template_centers(ops):
         # Try to determine a good value automatically based on contact positions.
         dmin = np.median(np.diff(np.unique(ops['yc'])))
     ops['dmin'] = dmin
-    ops['yup'] = np.arange(ymin, ymax+.00001, dmin//2)
+    ops['yup'] = np.arange(ymin, ymax+.00001, dmin/2)
 
     ops['dminx'] = dminx = ops['settings']['dminx']
     nx = np.round((xmax - xmin) / (dminx/2)) + 1
@@ -221,18 +221,6 @@ def run(ops, bfile, device=torch.device('cuda'), progress_bar=None):
     weigh = torch.exp(-ds_torch.unsqueeze(-1) / template_sizes**2)
     weigh = torch.permute(weigh, (2, 0, 1)).contiguous()
     weigh = weigh / (weigh**2).sum(1).unsqueeze(1)**.5
-
-    nan_weights = torch.isnan(weigh)
-    zero_weights = (weigh == 0)
-    if (nan_weights.sum() > 0) or (zero_weights.sum() > 0):
-        msg = """
-              NaNs and/or zeroes present in weights for spikedetect.run,
-              may need to adjust `min_template_size` and/or `dminx` 
-              for best results.\n
-              If you're using a probe with multiple shanks, see 
-              https://kilosort.readthedocs.io/en/latest/multi_shank.html
-              """
-        warnings.warn(msg, UserWarning)
 
     st = np.zeros((10**6, 6), 'float64')
     tF = np.zeros((10**6, nC , ops['settings']['n_pcs']), 'float32')
