@@ -112,6 +112,34 @@ EXTRA_PARAMETERS = {
             """
     },
 
+    'shift': {
+        'gui_name': 'shift', 'type': float, 'min': -np.inf, 'max': np.inf,
+        'exclude': [], 'default': None, 'step': 'data',
+        'description':
+            """
+            Scalar shift to apply to data before all other operations. In most
+            cases this should be left as None, but may be necessary for float32
+            data for example. If needed, `shift` and `scale` should be set such
+            that data is roughly in the range -100 to +100.
+            
+            If set, data will be `data = data*scale + shift`.
+            """
+    },
+
+    'scale': {
+        'gui_name': 'scale', 'type': float, 'min': -np.inf, 'max': np.inf,
+        'exclude': [], 'default': None, 'step': 'data',
+        'description':
+            """
+            Scaling factor to apply to data before all other operations. In most
+            cases this should be left as None, but may be necessary for float32
+            data for example. If needed, `shift` and `scale` should be set such
+            that data is roughly in the range -100 to +100.
+            
+            If set, data will be `data = data*scale + shift`.
+            """
+    },
+
     ### PREPROCESSING
     'artifact_threshold': {
         'gui_name': 'artifact threshold', 'type': float, 'min': 0, 'max': np.inf,
@@ -157,8 +185,19 @@ EXTRA_PARAMETERS = {
         'exclude': [0], 'default': 20, 'step': 'preprocessing',
         'description':
             """
-            For drift correction, sigma for interpolation (spatial standard
-            deviation). Approximate smoothness scale in units of microns.
+            Approximate spatial smoothness scale in units of microns.
+            """
+    },
+
+    'drift_smoothing': {
+        'gui_name': 'drift smoothing', 'type': list, 'min': None, 'max': None,
+        'exclude': [], 'default': [0.5, 0.5, 0.5], 'step': 'preprocessing',
+        'description':
+            """
+            Amount of gaussian smoothing to apply to the spatiotemporal drift
+            estimation, for x,y,time axes in units of registration blocks
+            (for x,y axes) and batch size (for time axis). The x,y smoothing has
+            no effect for `nblocks = 1`.
             """
     },
 
