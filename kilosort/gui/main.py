@@ -11,7 +11,7 @@ from kilosort.gui import (
     DataConversionBox
 )
 from kilosort.gui.logger import setup_logger
-from kilosort.io import BinaryFiltered
+from kilosort.io import BinaryFiltered, remove_bad_channels
 from kilosort.utils import DOWNLOADS_DIR, download_probes
 from qtpy import QtCore, QtGui, QtWidgets
 
@@ -324,10 +324,11 @@ class KiloSortGUI(QtWidgets.QMainWindow):
 
     def set_parameters(self):
         settings = self.settings_box.settings
+        bad_channels = self.settings_box.bad_channels
 
         self.data_path = settings["data_file_path"]
         self.results_directory = settings["results_dir"]
-        self.probe_layout = settings["probe"]
+        self.probe_layout = remove_bad_channels(settings["probe"], bad_channels)
         self.probe_name = settings["probe_name"]
         self.num_channels = settings["n_chan_bin"]
 
@@ -358,6 +359,7 @@ class KiloSortGUI(QtWidgets.QMainWindow):
     def load_binary_files(self):
         n_channels = self.params["n_chan_bin"]
         sample_rate = self.params["fs"]
+        cutoff = self.params['highpass_cutoff']
         chan_map = self.probe_layout["chanMap"]
         xc = self.probe_layout["xc"]
         yc = self.probe_layout["yc"]
@@ -395,6 +397,7 @@ class KiloSortGUI(QtWidgets.QMainWindow):
         # modified RD 20240416
         '''self.context.highpass_filter = preprocessing.get_highpass_filter(
             fs=sample_rate,
+            cutoff=cutoff,
             device=self.device
         )'''
         self.context.highpass_filter = None
@@ -480,7 +483,7 @@ class KiloSortGUI(QtWidgets.QMainWindow):
 
     @QtCore.Slot()
     def update_probe_view(self):
-        self.probe_view_box.set_layout(self.context)
+        self.probe_view_box.set_layout()
 
     def update_data_view(self):
         self.data_view_box.set_whitening_matrix(self.context.whitening_matrix)
