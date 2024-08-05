@@ -170,6 +170,15 @@ EXTRA_PARAMETERS = {
             """
     },
 
+    'highpass_cutoff': {
+        'gui_name': 'highpass cutoff', 'type': float, 'min': 0, 'max': np.inf,
+        'exclude': [], 'default': 300, 'step': 'preprocessing',
+        'description':
+            """
+            Critical frequency for highpass Butterworth filter applied to data.
+            """
+    },
+
     'binning_depth': {
         'gui_name': 'binning_depth', 'type': float, 'min': 0, 'max': np.inf,
         'exclude': [0], 'default': 5, 'step': 'preprocessing',
@@ -195,9 +204,10 @@ EXTRA_PARAMETERS = {
         'description':
             """
             Amount of gaussian smoothing to apply to the spatiotemporal drift
-            estimation, for x,y,time axes in units of registration blocks
-            (for x,y axes) and batch size (for time axis). The x,y smoothing has
-            no effect for `nblocks = 1`.
+            estimation, for correlation, time (units of registration blocks),
+            and y (units of batches) axes. The y smoothing has no effect
+            for `nblocks = 1`. Adjusting smoothing for the correlation axis
+            is not recommended.
             """
     },
 
@@ -375,13 +385,17 @@ EXTRA_PARAMETERS = {
 
 
     ### POSTPROCESSING
-    'duplicate_spike_bins': {
-        'gui_name': 'duplicate spike bins', 'type': int, 'min': 0, 'max': np.inf,
-        'exclude': [], 'default': 7, 'step': 'postprocessing',
+    'duplicate_spike_ms': {
+        'gui_name': 'duplicate spike ms', 'type': float, 'min': 0, 'max': np.inf,
+        'exclude': [], 'default': 0.25, 'step': 'postprocessing',
         'description':
             """
-            Number of bins for which subsequent spikes from the same cluster are
+            Time in ms for which subsequent spikes from the same cluster are
             assumed to be artifacts. A value of 0 disables this step.
+
+            NOTE: this was formerly handled by `duplicate_spike_bins`, which has
+            been deprecated. The new default of 0.25ms is equivalent to the old
+            default of 7 bins for a 30kHz sampling rate.
             """
     },
 }
