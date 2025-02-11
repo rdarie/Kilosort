@@ -12,7 +12,7 @@ from scipy.io.matlab.miobase import MatReadError
 from kilosort.gui.logger import setup_logger
 from kilosort.gui.minor_gui_elements import ProbeBuilder, create_prb
 from kilosort.io import load_probe, BinaryRWFile
-from kilosort.parameters import MAIN_PARAMETERS, EXTRA_PARAMETERS
+from kilosort.parameters import MAIN_PARAMETERS, EXTRA_PARAMETERS, compare_settings
 
 
 logger = setup_logger(__name__)
@@ -102,6 +102,7 @@ class SettingsBox(QtWidgets.QGroupBox):
 
         self.extra_parameters_window = ExtraParametersWindow(self)
         self.extra_parameters_button = QtWidgets.QPushButton('Extra settings')
+        self.revert_parameters_button = QtWidgets.QPushButton('Use default settings')
         self.import_settings_button = QtWidgets.QPushButton('Import')
         self.export_settings_button = QtWidgets.QPushButton('Export')
 
@@ -255,11 +256,17 @@ class SettingsBox(QtWidgets.QGroupBox):
 
         row_count += rspan
         layout.addWidget(
-            self.extra_parameters_button, row_count, col1, rspan, dbl
+            self.extra_parameters_button, row_count, col1, rspan, cspan1
             )
         self.extra_parameters_button.clicked.connect(
             lambda x: self.extra_parameters_window.show()
             )
+        layout.addWidget(
+            self.revert_parameters_button, row_count, col2, rspan, cspan2
+        )
+        self.revert_parameters_button.clicked.connect(
+            self.set_default_field_values
+        )
         
         row_count += rspan
         layout.addWidget(
@@ -517,9 +524,13 @@ class SettingsBox(QtWidgets.QGroupBox):
             "data_dtype": self.data_dtype,
             }
         for k in list(MAIN_PARAMETERS.keys()):
-            self.settings[k] = getattr(self, k)
+            v = getattr(self, k)
+            self.settings[k] = v
+            self.update_setting_color(k, v, MAIN_PARAMETERS)
         for k in list(EXTRA_PARAMETERS.keys()):
-            self.settings[k] = getattr(self.extra_parameters_window, k)
+            v = getattr(self.extra_parameters_window, k)
+            self.settings[k] = v
+            self.update_setting_color(k, v, EXTRA_PARAMETERS, extras=True)
 
         if not self.check_valid_binary_path(self.data_file_path):
             return False
@@ -532,6 +543,15 @@ class SettingsBox(QtWidgets.QGroupBox):
                 logger.info(f'`None` not allowed for parameter {k}.')
                 return False
         return True
+
+    def update_setting_color(self, k, v, d, extras=False):
+        o = self.extra_parameters_window if extras else self
+        if v != d[k]['default']:
+            c = "color : yellow"
+        else:
+            c = "color : white"
+        getattr(o, f'{k}_text').setStyleSheet(c)
+        getattr(o, f'{k}_input').setStyleSheet(c)
     
     @QtCore.Slot()
     def update_parameter(self):

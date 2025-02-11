@@ -226,8 +226,8 @@ def save_to_phy(st, clu, tF, Wall, probe, ops, imin, results_dir=None,
     Parameters
     ----------
     st : np.ndarray
-        3-column array of peak time (in samples), template, and amplitude for
-        each spike.
+        3-column array of peak time (in samples), template, and thresold
+        amplitude for each spike.
     clu : np.ndarray
         1D vector of cluster ids indicating which spike came from which cluster,
         same shape as `st[:,0]`.
@@ -317,6 +317,11 @@ def save_to_phy(st, clu, tF, Wall, probe, ops, imin, results_dir=None,
         `kilosort.io.load_ops`.
     params.py : shape N/A
         Settings used by Phy, like data location and sampling rate.
+    pc_features.npy : shape (n_spikes, n_pcs, nearest_chans)
+        Temporal features for each spike on the nearest channels for the
+        template the spike was assigned to.
+    pc_feature_ind.npy : shape (n_templates, nearest_chans)
+        Channel indices of the nearest channels for each template.
     similar_templates.npy : shape (n_templates, n_templates)
         Similarity score between each pair of templates, computed as correlation
         between templates.
