@@ -405,13 +405,13 @@ class KilosortGUI(QtWidgets.QMainWindow):
         self.context.binary_file = binary_file
 
         # modified RD 20240416
-        '''self.context.highpass_filter = preprocessing.get_highpass_filter(
+        self.context.highpass_filter = preprocessing.get_highpass_filter(
             fs=sample_rate,
             cutoff=cutoff,
             device=self.device
-        )'''
-        self.context.highpass_filter = None
-        print('Skipping high-pass filtering. (main.py L354)')
+        )
+        # self.context.highpass_filter = None
+        # print('Skipping high-pass filtering. (main.py L354)')
 
         with BinaryFiltered(
             filename=self.data_path,

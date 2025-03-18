@@ -492,10 +492,10 @@ def compute_preprocessing(ops, device, tic0=np.nan, file_object=None):
     
     # Compute high pass filter
     # modified RD 20240416
-    hp_filter = None
-    print('Skipping high-pass filtering. (run_kilosort.py L278)')
-    # cutoff = ops['settings']['highpass_cutoff']
-    # hp_filter = preprocessing.get_highpass_filter(fs, cutoff, device=device)
+    # hp_filter = None
+    # print('Skipping high-pass filtering. (run_kilosort.py L278)')
+    cutoff = ops['settings']['highpass_cutoff']
+    hp_filter = preprocessing.get_highpass_filter(fs, cutoff, device=device)
 
     # Compute whitening matrix
     bfile = io.BinaryFiltered(ops['filename'], n_chan_bin, fs, NT, nt, twav_min,
